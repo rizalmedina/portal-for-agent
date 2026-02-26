@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Performance & Coaching Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); color: #333; min-height: 100vh; }
+
+        .header { background: linear-gradient(135deg, #4B0082, #8B008B, #6B238E); color: white; padding: 20px; text-align: center; }
+        .logo-container { display: flex; justify-content: center; gap: 30px; margin-bottom: 15px; flex-wrap: wrap; }
+        .logo-box { background: white; padding: 10px 25px; border-radius: 10px; }
+        .logo-text { font-size: 22px; font-weight: bold; padding: 8px 20px; border-radius: 8px; border: 3px solid white; }
+        .telus-logo { color: #4B0082; }
+        .fox-logo { color: #8B008B; }
+
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 480px; width: 100%; }
+        .login-box h2 { color: #4B0082; margin-bottom: 8px; font-size: 1.8em; text-align: center; }
+        .login-box p { color: #666; margin-bottom: 25px; text-align: center; }
+
+        .login-tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .login-tab { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-weight: 600; color: #999; border-bottom: 3px solid transparent; transition: all 0.3s; font-size: 13px; }
+        .login-tab.active { color: #4B0082; border-bottom-color: #4B0082; }
+        .login-form-wrapper { display: none; }
+        .login-form-wrapper.active { display: block; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #4B0082; font-weight: 600; font-size: 14px; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: #4B0082; box-shadow: 0 0 8px rgba(75,0,130,0.2); }
+
+        .autocomplete-list { position: absolute; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; width: 100%; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .autocomplete-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .autocomplete-item:hover { background: #f0f4ff; }
+        .autocomplete-item strong { color: #4B0082; display: block; font-size: 14px; }
+        .autocomplete-item small { color: #999; font-size: 12px; }
+
+        .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #4B0082, #8B008B); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(75,0,130,0.4); }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; margin: 15px 0; border-radius: 5px; font-size: 13px; }
+        .error-box { background: #fde8e8; border-left: 4px solid #e74c3c; padding: 12px; margin: 15px 0; border-radius: 5px; color: #c0392b; font-size: 13px; display: none; }
+        .error-box.show { display: block; }
+
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .portal { display: none; }
+        .portal.show { display: block; }
+
+        .portal-header { background: linear-gradient(135deg, #4B0082, #8B008B); color: white; padding: 15px 20px; }
+        .portal-header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .agent-info .name { font-size: 1.1em; font-weight: 700; }
+        .agent-info .email { font-size: 0.85em; opacity: 0.85; }
+        .agent-info .empid { font-size: 0.8em; opacity: 0.8; }
+        .header-btns { display: flex; gap: 8px; }
+        .header-btn { background: rgba(255,255,255,0.25); color: white; border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
+        .header-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+        .tabs { display: flex; background: #2c3e50; border-radius: 8px 8px 0 0; overflow: hidden; }
+        .tab { flex: 1; padding: 14px; color: #bbb; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s; }
+        .tab:hover { background: rgba(75,0,130,0.3); color: white; }
+        .tab.active { background: linear-gradient(135deg, #4B0082, #8B008B); color: #FFD700; }
+
+        .tab-content { display: none; background: white; border-radius: 0 0 8px 8px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .card-title { color: #4B0082; font-size: 1.1em; font-weight: 700; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #8B008B; }
+
+        .stats-banner { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 8px; margin-bottom: 18px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 12px; }
+        .stat-box { padding: 12px; border-radius: 8px; text-align: center; }
+        .stat-box h5 { font-size: 10px; opacity: 0.85; margin-bottom: 5px; }
+        .stat-box .val { font-size: 20px; font-weight: 700; }
+        .sb-blue { background: rgba(21,101,192,0.4); }
+        .sb-white { background: rgba(255,255,255,0.2); }
+
+        .bench-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .bench-box { padding: 15px; border-radius: 8px; font-size: 13px; line-height: 1.8; }
+        .bench-blue { background: #e3f2fd; border-left: 4px solid #1565C0; }
+        .bench-violet { background: #f3e5f5; border-left: 4px solid #6A1B9A; }
+
+        .prog-row { margin: 12px 0; }
+        .prog-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+        .prog-bar { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700; transition: width 0.5s; }
+        .prog-blue { background: linear-gradient(135deg, #1565C0, #1976D2); }
+        .prog-violet { background: linear-gradient(135deg, #6A1B9A, #8B008B); }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .summary-box { padding: 18px; border-radius: 8px; text-align: center; color: white; }
+        .summary-box h4 { font-size: 12px; opacity: 0.9; margin-bottom: 8px; }
+        .summary-box .num { font-size: 32px; font-weight: 700; }
+        .sb-grey { background: linear-gradient(135deg, #7f8c8d, #95a5a6); }
+        .sb-orange { background: linear-gradient(135deg, #e67e22, #f39c12); }
+        .sb-green { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+
+        .coaching-card { background: #f8f9fa; border: 2px solid #4B0082; border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+        .coaching-card-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .coaching-card-header h3 { color: #4B0082; margin: 0; font-size: 1.05em; }
+        .coaching-meta { font-size: 12px; color: #666; display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+
+        .smart-box { background: white; border-left: 4px solid #4B0082; padding: 15px; margin: 12px 0; border-radius: 5px; }
+        .smart-item { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .smart-item:last-child { border-bottom: none; }
+        .smart-label { font-weight: 700; color: #4B0082; display: inline-block; min-width: 110px; }
+
+        .notes-box { background: #fff9e6; border-left: 4px solid #ffc107; padding: 12px; margin: 12px 0; border-radius: 5px; font-size: 13px; line-height: 1.7; }
+
+        .metrics-box { background: #f0f4ff; border-radius: 8px; padding: 14px; margin: 12px 0; }
+        .metrics-box-title { font-weight: 700; color: #4B0082; font-size: 13px; margin-bottom: 10px; }
+        .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+        .metric-item { padding: 8px; background: white; border-radius: 5px; border-left: 3px solid #4B0082; font-size: 12px; }
+        .metric-item strong { display: block; color: #4B0082; margin-bottom: 3px; }
+
+        .ack-box { border-radius: 10px; padding: 18px; margin-top: 15px; text-align: center; }
+        .ack-box.done { background: #e8f5e9; border: 2px solid #4caf50; }
+        .ack-box.pending { background: #fff3e0; border: 2px solid #ff9800; }
+        .ack-box h4 { margin-bottom: 8px; font-size: 1em; }
+        .ack-box.done h4 { color: #2e7d32; }
+        .ack-box.pending h4 { color: #e65100; }
+        .ack-box p { font-size: 13px; color: #555; margin: 5px 0; }
+
+        .goal-card { background: white; border: 1px solid #e0e0e0; border-left: 4px solid #4B0082; border-radius: 8px; padding: 18px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .goal-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+        .goal-date-box { padding: 12px; border-radius: 8px; }
+        .goal-date-box.green { background: #e8f5e9; border-left: 3px solid #4caf50; }
+        .goal-date-box.blue { background: #e3f2fd; border-left: 3px solid #2196f3; }
+        .goal-date-box strong { display: block; font-size: 12px; margin-bottom: 4px; }
+        .goal-date-box.green strong { color: #2e7d32; }
+        .goal-date-box.blue strong { color: #1565c0; }
+        .goal-date-box span { font-size: 1.1em; font-weight: 700; }
+        .goal-date-box.green span { color: #2e7d32; }
+        .goal-date-box.blue span { color: #1565c0; }
+
+        .progress-compare { background: #f0f4ff; border-radius: 8px; padding: 12px; margin: 12px 0; }
+        .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+        .compare-item { font-size: 13px; }
+        .compare-item span { font-size: 11px; color: #666; display: block; }
+        .compare-item strong { color: #4B0082; }
+        .improved { color: #27ae60 !important; }
+        .worsened { color: #e74c3c !important; }
+
+        .tips-box { background: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 12px 0; border-radius: 5px; font-size: 13px; line-height: 1.8; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+        .badge-green { background: #27ae60; color: white; }
+        .badge-orange { background: #e67e22; color: white; }
+        .badge-red { background: #e74c3c; color: white; }
+        .badge-blue { background: #2980b9; color: white; }
+        .badge-teal { background: #17a2b8; color: white; }
+        .badge-grey { background: #95a5a6; color: white; }
+
+        .emp-badge { background: #1565C0; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: monospace; }
+
+        .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; margin: 3px; display: inline-block; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .btn-primary { background: linear-gradient(135deg, #4B0082, #8B008B); color: white; }
+        .btn-success { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; }
+        .btn-info { background: linear-gradient(135deg, #2980b9, #3498db); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; overflow-y: auto; padding: 20px; }
+        .modal.show { display: flex; align-items: flex-start; justify-content: center; }
+        .modal-box { background: white; border-radius: 12px; padding: 28px; width: 100%; max-width: 800px; margin: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid #f0f0f0; }
+        .modal-header h2 { color: #4B0082; font-size: 1.2em; }
+        .modal-close { background: none; border: none; font-size: 26px; cursor: pointer; color: #aaa; }
+        .modal-close:hover { color: #333; }
+
+        .ack-confirm-box { background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.8; }
+        .ack-preview { background: #f8f9fa; border: 1px solid #dde2e6; border-radius: 8px; padding: 18px; margin: 15px 0; max-height: 400px; overflow-y: auto; font-size: 13px; }
+        .ack-preview table { width: 100%; border-collapse: collapse; }
+        .ack-preview td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        .ack-preview tr:nth-child(even) { background: #f8f9fa; }
+
+        .form-field { margin-bottom: 14px; }
+        .form-field label { display: block; margin-bottom: 6px; color: #4B0082; font-weight: 600; font-size: 13px; }
+        .form-field input, .form-field textarea { width: 100%; padding: 10px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        .form-field input:focus, .form-field textarea:focus { outline: none; border-color: #4B0082; box-shadow: 0 0 0 3px rgba(75,0,130,0.1); }
+
+        .success-banner { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 14px; border-radius: 6px; margin-bottom: 18px; display: none; font-size: 14px; }
+        .success-banner.show { display: block; }
+
+        .no-data { text-align: center; color: #aaa; padding: 40px 20px; }
+        .no-data-icon { font-size: 3em; margin-bottom: 12px; }
+        .no-data p { font-size: 14px; }
+
+        .loading-overlay { position: fixed; inset: 0; background: rgba(75,0,130,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; gap: 15px; color: white; }
+        .loading-overlay.hidden { display: none; }
+        .big-spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.3); border-top: 6px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loading-text { font-size: 1.1em; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .tabs { flex-direction: column; }
+            .bench-grid, .summary-grid, .goal-dates, .compare-grid { grid-template-columns: 1fr; }
+            .portal-header-inner { flex-direction: column; }
+            .header-btns { width: 100%; }
+            .header-btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════ LOADING OVERLAY ════════════ -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="big-spinner"></div>
+    <div class="loading-text" id="loadingText">Loading Portal...</div>
+</div>
+
+<!-- ════════════ HEADER ════════════ -->
+<div class="header">
+    <div class="logo-container">
+        <div class="logo-box"><div class="logo-text telus-logo">TELUS Digital</div></div>
+        <div class="logo-box"><div class="logo-text fox-logo">Europcar FOX</div></div>
+    </div>
+    <h1 style="font-size:1.8em;margin-bottom:5px;">📊 Agent Performance & Coaching Portal</h1>
+    <p style="opacity:0.85;font-size:0.9em;">☁️ Cloud-Based · Access from Any Computer · Real-Time Data</p>
+</div>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="loginScreen" class="login-container">
+    <div class="login-box">
+        <h2>🔓 Agent Login</h2>
+        <p>Access your performance data and coaching documents</p>
+
+        <div class="login-tabs">
+            <button class="login-tab active" onclick="switchLoginTab(event,'tab-id')">🆔 Employee ID</button>
+            <button class="login-tab" onclick="switchLoginTab(event,'tab-name')">👤 Agent Name</button>
+        </div>
+
+        <!-- BY EMPLOYEE ID -->
+        <div id="tab-id" class="login-form-wrapper active">
+            <div class="form-group">
+                <label for="empIdInput">Your Employee ID</label>
+                <input type="text" id="empIdInput" placeholder="e.g. EMP-001, EMP-002...">
+            </div>
+            <div id="errId" class="error-box">
+                <strong>❌ Not Found</strong><br>
+                <span id="errIdText">Employee ID not found in the system.</span>
+            </div>
+            <div class="info-box">
+                <strong>💡</strong> Enter your Employee ID to log in from <strong>any computer</strong> — data is stored in the cloud!
+            </div>
+            <button class="login-btn" id="btnLoginId" onclick="loginById()">🔓 Login with Employee ID</button>
+        </div>
+
+        <!-- BY NAME -->
+        <div id="tab-name" class="login-form-wrapper">
+            <div class="form-group" style="position:relative;">
+                <label for="nameInput">Your Full Name</label>
+                <input type="text" id="nameInput" placeholder="Start typing your name..." autocomplete="off" oninput="handleNameInput()">
+                <div id="autocompleteList" class="autocomplete-list" style="display:none;"></div>
+            </div>
+            <div id="errName" class="error-box">
+                <strong>❌ Not Found</strong><br>
+                <span id="errNameText">Agent name not found in the system.</span>
+            </div>
+            <div class="info-box">
+                <strong>💡</strong> Start typing your name to see suggestions. Works on <strong>any computer</strong>!
+            </div>
+            <button class="login-btn" id="btnLoginName" onclick="loginByName()">🔓 Login with Name</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════ PORTAL ════════════ -->
+<div id="portal" class="portal">
+    <div class="portal-header">
+        <div class="portal-header-inner">
+            <div class="agent-info">
+                <div class="name" id="hdrName">👤 —</div>
+                <div class="email" id="hdrEmail">—</div>
+                <div class="empid" id="hdrEmpId">ID: —</div>
+            </div>
+            <div class="header-btns">
+                <button class="header-btn" onclick="refreshData()">🔄 Refresh Data</button>
+                <button class="header-btn" onclick="switchAgent()">👥 Switch Agent</button>
+                <button class="header-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="success-banner" id="successBanner">
+            ✅ <strong>Welcome!</strong> Your data has been loaded from the cloud. You can access this portal from any computer!
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(event,'t-dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab(event,'t-coaching')">📚 Coaching Sessions</button>
+            <button class="tab" onclick="switchTab(event,'t-goals')">🎯 Active Goals</button>
+        </div>
+
+        <!-- ════════ DASHBOARD ════════ -->
+        <div id="t-dashboard" class="tab-content active">
+            <div class="card">
+                <div class="card-title">📈 Your Current Performance</div>
+                <div class="stats-banner">
+                    <div style="font-size:13px;opacity:0.9;margin-bottom:10px;">📊 Live Metrics from Cloud</div>
+                    <div class="stats-grid" id="statsGrid"></div>
+                </div>
+
+                <div class="bench-grid">
+                    <div class="bench-box bench-blue">
+                        <strong>📞 General Questions AHT</strong><br>
+                        🎯 Target: ≤ 295s<br>
+                        ✅ Acceptable: 296–300s<br>
+                        ❌ Critical: 301+s
+                    </div>
+                    <div class="bench-box bench-violet">
+                        <strong>📋 Reservations AHT</strong><br>
+                        🌟 Exceptional: 240–300s<br>
+                        ✅ Excellent: 301–340s<br>
+                        ✓ Good: 341–370s
+                    </div>
+                </div>
+
+                <div class="prog-row">
+                    <div class="prog-label">
+                        <span>📞 GQ AHT</span>
+                        <span id="gqLabel">—</span>
+                    </div>
+                    <div class="prog-bar"><div class="prog-fill prog-blue" id="gqBar" style="width:0%"></div></div>
+                </div>
+
+                <div class="prog-row">
+                    <div class="prog-label">
+                        <span>📋 Res AHT</span>
+                        <span id="resLabel">—</span>
+                    </div>
+                    <div class="prog-bar"><div class="prog-fill prog-violet" id="resBar" style="width:0%"></div></div>
+                </div>
+
+                <div class="tips-box" style="margin-top:15px;">
+                    <strong>💡 Quick Wins:</strong><br>
+                    ✅ Bundle opening questions together &nbsp;|&nbsp; ✅ Use assumptive language<br>
+                    ✅ Integrate add-ons during the call &nbsp;|&nbsp; ✅ Streamline your recap
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 Coaching Summary</div>
+                <div id="coachingSummary"></div>
+            </div>
+        </div>
+
+        <!-- ════════ COACHING SESSIONS ════════ -->
+        <div id="t-coaching" class="tab-content">
+            <div class="info-box">
+                <strong>ℹ️</strong> All coaching documents are stored in the cloud. Review and acknowledge each one to confirm understanding.
+            </div>
+            <div id="coachingList"></div>
+        </div>
+
+        <!-- ════════ ACTIVE GOALS ════════ -->
+        <div id="t-goals" class="tab-content">
+            <div class="info-box">
+                <strong>🎯</strong> Your acknowledged coaching goals appear here. Track your progress daily.
+            </div>
+            <div id="goalsList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════ ACKNOWLEDGE MODAL ════════ -->
+<div id="ackModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>✅ Acknowledge Coaching Document</h2>
+            <button class="modal-close" onclick="closeAckModal()">&times;</button>
+        </div>
+
+        <div class="ack-confirm-box">
+            <strong>📋 By acknowledging, you confirm:</strong><br>
+            ✔ You have received and read this coaching document<br>
+            ✔ You understand the SMART goals and targets<br>
+            ✔ You commit to working towards the improvement targets
+        </div>
+
+        <div class="ack-preview" id="ackPreview"></div>
+
+        <div class="form-field">
+            <label>Your Full Name (to confirm identity)</label>
+            <input type="text" id="ackName" placeholder="Type your full name here...">
+        </div>
+
+        <div class="form-field">
+            <label>Comments or Questions for your Leader (optional)</label>
+            <textarea id="ackComments" rows="3" placeholder="Any feedback or questions..."></textarea>
+        </div>
+
+        <div style="margin-top:15px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="confirmAck()">✅ I Acknowledge This Document</button>
+            <button class="btn btn-secondary" onclick="closeAckModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════
+// ⚡ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+// ════════════════════════════════════════════════════
+const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let allAgents = [];
+let allSessions = [];
+let currentAgent = null;
+let pendingAckId = null;
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+    showLoading('Loading portal data...');
+    await loadAllData();
+    hideLoading();
+    setupListeners();
+});
+
+function setupListeners() {
+    document.getElementById('empIdInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') loginById();
+    });
+    document.getElementById('nameInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') loginByName();
+    });
+    document.getElementById('nameInput').addEventListener('blur', () => {
+        setTimeout(() => document.getElementById('autocompleteList').style.display = 'none', 200);
+    });
+    document.getElementById('ackModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('ackModal')) closeAckModal();
+    });
+}
+
+// ════════════════════════════════════════════════════
+// LOADING
+// ════════════════════════════════════════════════════
+function showLoading(text = 'Loading...') {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════
+// DATA LOADING FROM GOOGLE APPS SCRIPT
+// ════════════════════════════════════════════════════
+async function loadAllData() {
+    try {
+        const [agentsRes, sessionsRes] = await Promise.all([
+            fetch(`${SCRIPT_URL}?action=getAgents`),
+            fetch(`${SCRIPT_URL}?action=getSessions`)
+        ]);
+
+        const agentsData = await agentsRes.json();
+        const sessionsData = await sessionsRes.json();
+
+        if (agentsData.success) {
+            allAgents = agentsData.agents;
+        }
+
+        if (sessionsData.success) {
+            allSessions = sessionsData.sessions;
+        }
+
+        // Merge sessions into agents
+        allAgents.forEach(agent => {
+            agent.id = parseInt(agent.id);
+            agent.gqAHT = parseInt(agent.gqAHT) || 300;
+            agent.resAHT = parseInt(agent.resAHT) || 350;
+            agent.conversionRate = parseInt(agent.conversionRate) || 80;
+            agent.qualityScore = parseInt(agent.qualityScore) || 90;
+            agent.prepaidRate = parseInt(agent.prepaidRate) || 70;
+            agent.payLaterRate = parseInt(agent.payLaterRate) || 30;
+            agent.coachingSessions = allSessions
+                .filter(s => String(s.agentId) === String(agent.id))
+                .map(s => ({
+                    id: parseInt(s.sessionId),
+                    date: s.date,
+                    type: s.type,
+                    focusArea: s.focusArea,
+                    smartGoal: {
+                        specific: s.specific,
+                        measurable: s.measurable,
+                        achievable: s.achievable,
+                        relevant: s.relevant,
+                        deadline: s.deadline
+                    },
+                    notes: s.notes,
+                    metrics: {
+                        gqAHT: parseInt(s.gqAHT) || 0,
+                        resAHT: parseInt(s.resAHT) || 0,
+                        conversion: parseInt(s.conversion) || 0,
+                        quality: parseInt(s.quality) || 0,
+                        prepaid: parseInt(s.prepaid) || 0,
+                        payLater: parseInt(s.payLater) || 0
+                    },
+                    docStatus: s.docStatus || 'not-sent',
+                    sentAt: s.sentAt,
+                    acknowledgedAt: s.acknowledgedAt,
+                    acknowledgedBy: s.acknowledgedBy,
+                    ackComments: s.ackComments
+                }));
+        });
+
+        console.log(`✅ Loaded ${allAgents.length} agents and ${allSessions.length} sessions`);
+
+    } catch (error) {
+        console.error('Failed to load from cloud:', error);
+        loadFallbackData();
+    }
+}
+
+async function refreshData() {
+    if (!currentAgent) return;
+    showLoading('Refreshing data...');
+    await loadAllData();
+    const updated = allAgents.find(a => a.id === currentAgent.id);
+    if (updated) {
+        currentAgent = updated;
+        renderPortal(currentAgent);
+    }
+    hideLoading();
+    alert('✅ Data refreshed from cloud!');
+}
+
+// ════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════
+function switchLoginTab(evt, tabId) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.login-form-wrapper').forEach(f => f.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    document.getElementById('errId').classList.remove('show');
+    document.getElementById('errName').classList.remove('show');
+}
+
+function loginById() {
+    const input = document.getElementById('empIdInput').value.trim();
+    const errEl = document.getElementById('errId');
+
+    if (!input) {
+        errEl.classList.add('show');
+        document.getElementById('errIdText').textContent = 'Please enter your Employee ID.';
+        return;
+    }
+
+    const agent = allAgents.find(a => a.empId && a.empId.toLowerCase() === input.toLowerCase());
+
+    if (!agent) {
+        errEl.classList.add('show');
+        document.getElementById('errIdText').textContent = `No agent found with Employee ID "${input}". Please check and try again.`;
+        return;
+    }
+
+    errEl.classList.remove('show');
+    doLogin(agent);
+}
+
+function handleNameInput() {
+    const input = document.getElementById('nameInput').value.trim().toLowerCase();
+    const list = document.getElementById('autocompleteList');
+
+    if (!input) { list.style.display = 'none'; return; }
+
+    const matches = allAgents.filter(a => a.name.toLowerCase().includes(input));
+    if (!matches.length) { list.style.display = 'none'; return; }
+
+    list.innerHTML = matches.map(a => `
+        <div class="autocomplete-item" onclick="pickAgent(${a.id})">
+            <strong>${a.name}</strong>
+            <small>ID: ${a.empId || 'N/A'} | ${a.workEmail || '—'}</small>
+        </div>
+    `).join('');
+    list.style.display = 'block';
+}
+
+function pickAgent(agentId) {
+    const agent = allAgents.find(a => a.id === agentId);
+    if (!agent) return;
+    document.getElementById('nameInput').value = agent.name;
+    document.getElementById('autocompleteList').style.display = 'none';
+    doLogin(agent);
+}
+
+function loginByName() {
+    const input = document.getElementById('nameInput').value.trim();
+    const errEl = document.getElementById('errName');
+
+    if (!input) {
+        errEl.classList.add('show');
+        document.getElementById('errNameText').textContent = 'Please enter your name.';
+        return;
+    }
+
+    let agent = allAgents.find(a => a.name.toLowerCase() === input.toLowerCase());
+    if (!agent) {
+        const matches = allAgents.filter(a => a.name.toLowerCase().includes(input.toLowerCase()));
+        if (matches.length === 1) agent = matches[0];
+        else if (matches.length > 1) {
+            errEl.classList.add('show');
+            document.getElementById('errNameText').textContent = 'Multiple agents found. Please use your Employee ID.';
+            return;
+        }
+    }
+
+    if (!agent) {
+        errEl.classList.add('show');
+        document.getElementById('errNameText').textContent = `No agent found with name "${input}".`;
+        return;
+    }
+
+    errEl.classList.remove('show');
+    doLogin(agent);
+}
+
+function doLogin(agent) {
+    currentAgent = agent;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('portal').classList.add('show');
+    renderPortal(agent);
+    showSuccessBanner();
+}
+
+function switchAgent() {
+    if (!confirm('Switch to another agent?')) return;
+    currentAgent = null;
+    document.getElementById('portal').classList.remove('show');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('empIdInput').value = '';
+    document.getElementById('nameInput').value = '';
+    document.getElementById('errId').classList.remove('show');
+    document.getElementById('errName').classList.remove('show');
+}
+
+function logout() {
+    if (!confirm('Are you sure you want to logout?')) return;
+    switchAgent();
+}
+
+function showSuccessBanner() {
+    const b = document.getElementById('successBanner');
+    b.classList.add('show');
+    setTimeout(() => b.classList.remove('show'), 6000);
+}
+
+// ════════════════════════════════════════════════════
+// RENDER PORTAL
+// ════════════════════════════════════════════════════
+function renderPortal(agent) {
+    document.getElementById('hdrName').textContent = `👤 ${agent.name}`;
+    document.getElementById('hdrEmail').textContent = agent.workEmail || '—';
+    document.getElementById('hdrEmpId').innerHTML = `ID: <span class="emp-badge">${agent.empId || 'N/A'}</span>`;
+
+    renderStats(agent);
+    renderSummary(agent);
+    renderCoaching(agent);
+    renderGoals(agent);
+}
+
+function renderStats(agent) {
+    document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-box sb-blue">
+            <h5>📞 GQ AHT</h5>
+            <div class="val">${agent.gqAHT}s</div>
+            <div style="margin-top:4px;"><span class="${gqBadge(agent.gqAHT)}">${gqStatus(agent.gqAHT)}</span></div>
+        </div>
+        <div class="stat-box sb-blue">
+            <h5>📋 Res AHT</h5>
+            <div class="val">${agent.resAHT}s</div>
+            <div style="margin-top:4px;"><span class="${resBadge(agent.resAHT)}">${resStatus(agent.resAHT)}</span></div>
+        </div>
+        <div class="stat-box sb-white"><h5>Conversion</h5><div class="val">${agent.conversionRate}%</div></div>
+        <div class="stat-box sb-white"><h5>Quality</h5><div class="val">${agent.qualityScore}%</div></div>
+        <div class="stat-box sb-white"><h5>Prepaid</h5><div class="val">${agent.prepaidRate}%</div></div>
+        <div class="stat-box sb-white"><h5>Pay Later</h5><div class="val">${agent.payLaterRate}%</div></div>
+    `;
+
+    document.getElementById('gqLabel').textContent = `${agent.gqAHT}s`;
+    document.getElementById('gqBar').style.width = Math.min((agent.gqAHT / 350) * 100, 100) + '%';
+    document.getElementById('resLabel').textContent = `${agent.resAHT}s`;
+    document.getElementById('resBar').style.width = Math.min((agent.resAHT / 420) * 100, 100) + '%';
+}
+
+function renderSummary(agent) {
+    const sessions = agent.coachingSessions || [];
+    const notSent = sessions.filter(s => s.docStatus === 'not-sent').length;
+    const sent = sessions.filter(s => s.docStatus === 'sent').length;
+    const acked = sessions.filter(s => s.docStatus === 'acknowledged').length;
+
+    document.getElementById('coachingSummary').innerHTML = sessions.length ? `
+        <div class="summary-grid">
+            <div class="summary-box sb-grey"><h4>📄 Not Sent</h4><div class="num">${notSent}</div></div>
+            <div class="summary-box sb-orange"><h4>📤 Awaiting Ack</h4><div class="num">${sent}</div></div>
+            <div class="summary-box sb-green"><h4>✅ Acknowledged</h4><div class="num">${acked}</div></div>
+        </div>
+    ` : `<div class="no-data"><div class="no-data-icon">📭</div><p>No coaching sessions yet.</p></div>`;
+}
+
+function renderCoaching(agent) {
+    const el = document.getElementById('coachingList');
+    const sessions = (agent.coachingSessions || []).filter(s => s.docStatus === 'sent' || s.docStatus === 'acknowledged');
+
+    if (!sessions.length) {
+        el.innerHTML = `<div class="no-data"><div class="no-data-icon">📭</div><p>No coaching documents yet.</p><p style="font-size:12px;color:#bbb;margin-top:8px;">Your leader will send coaching documents here.</p></div>`;
+        return;
+    }
+
+    el.innerHTML = sessions.map(s => {
+        const isAcked = s.docStatus === 'acknowledged';
+        const sDate = new Date(s.date).toLocaleDateString();
+        const dDate = new Date(s.smartGoal.deadline).toLocaleDateString();
+
+        return `
+            <div class="coaching-card">
+                <div class="coaching-card-header">
+                    <h3>${s.focusArea}</h3>
+                    <span class="badge ${isAcked ? 'badge-green' : 'badge-orange'}">${isAcked ? '✅ Acknowledged' : '📤 Awaiting Acknowledgement'}</span>
+                </div>
+                <div class="coaching-meta">
+                    <span>📅 ${sDate}</span>
+                    <span>🎯 Due: ${dDate}</span>
+                    <span>📋 ${s.type || 'Coaching Session'}</span>
+                </div>
+
+                <div class="smart-box">
+                    <div style="font-weight:700;color:#4B0082;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #4B0082;">🎓 SMART Goal Framework</div>
+                    <div class="smart-item"><span class="smart-label">🎯 Specific:</span> ${s.smartGoal.specific}</div>
+                    <div class="smart-item"><span class="smart-label">📊 Measurable:</span> ${s.smartGoal.measurable}</div>
+                    <div class="smart-item"><span class="smart-label">⚙️ Achievable:</span> ${s.smartGoal.achievable || 'N/A'}</div>
+                    <div class="smart-item"><span class="smart-label">💡 Relevant:</span> ${s.smartGoal.relevant || 'N/A'}</div>
+                    <div class="smart-item"><span class="smart-label">⏰ Time-bound:</span> ${dDate}</div>
+                </div>
+
+                ${s.notes ? `<div class="notes-box"><strong>💬 Coaching Notes:</strong><br>${s.notes}</div>` : ''}
+
+                <div class="metrics-box">
+                    <div class="metrics-box-title">📊 Your Metrics at Time of Coaching:</div>
+                    <div class="metrics-row">
+                        <div class="metric-item"><strong>📞 GQ AHT</strong>${s.metrics.gqAHT}s<br><span class="${gqBadge(s.metrics.gqAHT)}">${gqStatus(s.metrics.gqAHT)}</span></div>
+                        <div class="metric-item"><strong>📋 Res AHT</strong>${s.metrics.resAHT}s<br><span class="${resBadge(s.metrics.resAHT)}">${resStatus(s.metrics.resAHT)}</span></div>
+                        <div class="metric-item"><strong>Conversion</strong>${s.metrics.conversion}%</div>
+                        <div class="metric-item"><strong>Quality</strong>${s.metrics.quality}%</div>
+                        <div class="metric-item"><strong>Prepaid</strong>${s.metrics.prepaid}%</div>
+                        <div class="metric-item"><strong>Pay Later</strong>${s.metrics.payLater}%</div>
+                    </div>
+                </div>
+
+                ${isAcked ? `
+                    <div class="ack-box done">
+                        <h4>✅ You Acknowledged This Document</h4>
+                        <p>On: <strong>${new Date(s.acknowledgedAt).toLocaleString()}</strong></p>
+                        <p>By: <strong>${s.acknowledgedBy}</strong></p>
+                        ${s.ackComments ? `<p style="margin-top:8px;font-style:italic;">"${s.ackComments}"</p>` : ''}
+                    </div>
+                ` : `
+                    <div class="ack-box pending">
+                        <h4>⏳ Awaiting Your Acknowledgement</h4>
+                        <p>Please review the coaching document above and click below to confirm you understand the goals.</p>
+                        <button class="btn btn-success" style="margin-top:12px;" onclick="openAckModal(${s.id})">✅ Acknowledge Receipt</button>
+                    </div>
+                `}
+            </div>
+        `;
+    }).join('');
+}
+
+function renderGoals(agent) {
+    const el = document.getElementById('goalsList');
+    const sessions = (agent.coachingSessions || []).filter(s => s.docStatus === 'acknowledged');
+
+    if (!sessions.length) {
+        el.innerHTML = `<div class="no-data"><div class="no-data-icon">🎯</div><p>No active goals yet.</p><p style="font-size:12px;color:#bbb;margin-top:8px;">Acknowledge a coaching document to see your goals here.</p></div>`;
+        return;
+    }
+
+    el.innerHTML = sessions.map((s, i) => {
+        const deadline = new Date(s.smartGoal.deadline);
+        const daysLeft = Math.ceil((deadline - new Date()) / 86400000);
+        const urgency = daysLeft < 0 ? `<span class="badge badge-red">⏰ Overdue</span>` :
+                        daysLeft <= 3 ? `<span class="badge badge-orange">⚠️ Due Soon</span>` :
+                        `<span class="badge badge-green">✅ On Track</span>`;
+        const gqDiff = s.metrics.gqAHT - agent.gqAHT;
+        const resDiff = s.metrics.resAHT - agent.resAHT;
+
+        return `
+            <div class="goal-card">
+                <div class="goal-header">
+                    <h3 style="color:#4B0082;margin:0;">Goal ${i + 1}: ${s.focusArea}</h3>
+                    ${urgency}
+                </div>
+
+                <div style="background:#f0f4ff;padding:14px;border-radius:8px;margin-bottom:12px;font-size:13px;">
+                    <strong style="color:#4B0082;">🎯 Objective:</strong><br>
+                    <span style="line-height:1.6;">${s.smartGoal.specific}</span><br><br>
+                    <strong style="color:#4B0082;">📊 Success Metric:</strong><br>
+                    <span style="line-height:1.6;">${s.smartGoal.measurable}</span>
+                </div>
+
+                <div class="goal-dates">
+                    <div class="goal-date-box green">
+                        <strong>📅 Target Date</strong>
+                        <span>${deadline.toLocaleDateString()}</span>
+                    </div>
+                    <div class="goal-date-box blue">
+                        <strong>⏱️ Days Remaining</strong>
+                        <span>${Math.max(daysLeft, 0)} days</span>
+                    </div>
+                </div>
+
+                <div class="progress-compare">
+                    <strong style="color:#4B0082;font-size:13px;">📈 Progress Since Coaching:</strong>
+                    <div class="compare-grid">
+                        <div class="compare-item">
+                            <span>📞 GQ AHT at Coaching</span>
+                            <strong>${s.metrics.gqAHT}s</strong>
+                        </div>
+                        <div class="compare-item">
+                            <span>Current GQ AHT</span>
+                            <strong>${agent.gqAHT}s ${gqDiff > 0 ? `<em class="improved">↓ ${gqDiff}s better</em>` : gqDiff < 0 ? `<em class="worsened">↑ ${Math.abs(gqDiff)}s slower</em>` : ''}</strong>
+                        </div>
+                        <div class="compare-item">
+                            <span>📋 Res AHT at Coaching</span>
+                            <strong>${s.metrics.resAHT}s</strong>
+                        </div>
+                        <div class="compare-item">
+                            <span>Current Res AHT</span>
+                            <strong>${agent.resAHT}s ${resDiff > 0 ? `<em class="improved">↓ ${resDiff}s better</em>` : resDiff < 0 ? `<em class="worsened">↑ ${Math.abs(resDiff)}s slower</em>` : ''}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips-box">
+                    <strong>💡 Tips:</strong> Monitor daily AHT · Record progress weekly · Ask your leader for support · Celebrate wins!
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ════════════════════════════════════════════════════
+// ACKNOWLEDGEMENT
+// ════════════════════════════════════════════════════
+function openAckModal(sessionId) {
+    const session = currentAgent.coachingSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    pendingAckId = sessionId;
+
+    document.getElementById('ackPreview').innerHTML = `
+        <table>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;width:35%;padding:8px;">Agent:</td><td style="padding:8px;"><strong>${currentAgent.name}</strong></td></tr>
+            <tr><td style="font-weight:600;color:#4B0082;padding:8px;">Employee ID:</td><td style="padding:8px;"><span class="emp-badge">${currentAgent.empId || 'N/A'}</span></td></tr>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;padding:8px;">Focus Area:</td><td style="padding:8px;">${session.focusArea}</td></tr>
+            <tr><td style="font-weight:600;color:#4B0082;padding:8px;">Session Date:</td><td style="padding:8px;">${new Date(session.date).toLocaleDateString()}</td></tr>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;padding:8px;vertical-align:top;">Specific Goal:</td><td style="padding:8px;">${session.smartGoal.specific}</td></tr>
+            <tr><td style="font-weight:600;color:#4B0082;padding:8px;vertical-align:top;">Measurable:</td><td style="padding:8px;">${session.smartGoal.measurable}</td></tr>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;padding:8px;">Deadline:</td><td style="padding:8px;"><strong>${new Date(session.smartGoal.deadline).toLocaleDateString()}</strong></td></tr>
+            <tr><td colspan="2" style="padding:8px;background:#e3f2fd;font-weight:600;color:#1565C0;">📊 Metrics at Coaching</td></tr>
+            <tr><td style="font-weight:600;color:#4B0082;padding:8px;">📞 GQ AHT:</td><td style="padding:8px;">${session.metrics.gqAHT}s <span class="${gqBadge(session.metrics.gqAHT)}">${gqStatus(session.metrics.gqAHT)}</span></td></tr>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;padding:8px;">📋 Res AHT:</td><td style="padding:8px;">${session.metrics.resAHT}s <span class="${resBadge(session.metrics.resAHT)}">${resStatus(session.metrics.resAHT)}</span></td></tr>
+            <tr><td style="font-weight:600;color:#4B0082;padding:8px;">Conversion:</td><td style="padding:8px;">${session.metrics.conversion}%</td></tr>
+            <tr style="background:#f0f4ff;"><td style="font-weight:600;color:#4B0082;padding:8px;">Quality:</td><td style="padding:8px;">${session.metrics.quality}%</td></tr>
+            ${session.notes ? `<tr><td colspan="2" style="padding:8px;background:#fff9e6;font-weight:600;color:#e65100;">💬 Coaching Notes</td></tr><tr><td colspan="2" style="padding:8px;">${session.notes}</td></tr>` : ''}
+        </table>
+    `;
+
+    document.getElementById('ackName').value = currentAgent.name;
+    document.getElementById('ackComments').value = '';
+    document.getElementById('ackModal').classList.add('show');
+}
+
+function closeAckModal() {
+    document.getElementById('ackModal').classList.remove('show');
+    pendingAckId = null;
+}
+
+async function confirmAck() {
+    const name = document.getElementById('ackName').value.trim();
+    const comments = document.getElementById('ackComments').value.trim();
+
+    if (!name) {
+        alert('Please enter your full name to confirm acknowledgement.');
+        return;
+    }
+
+    showLoading('Saving acknowledgement to cloud...');
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'acknowledge',
+                sessionId: pendingAckId,
+                acknowledgedBy: name,
+                ackComments: comments
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update local data
+            const session = currentAgent.coachingSessions.find(s => s.id === pendingAckId);
+            if (session) {
+                session.docStatus = 'acknowledged';
+                session.acknowledgedAt = new Date().toISOString();
+                session.acknowledgedBy = name;
+                session.ackComments = comments;
+            }
+
+            closeAckModal();
+            renderCoaching(currentAgent);
+            renderGoals(currentAgent);
+            renderSummary(currentAgent);
+
+            hideLoading();
+            alert(`✅ Acknowledgement saved to cloud!\n\nAgent: ${name}\nDate: ${new Date().toLocaleString()}\n\nYour leader can now see your acknowledgement.`);
+        } else {
+            throw new Error('Save failed');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Acknowledgement save failed:', error);
+        alert('⚠️ Could not save to cloud. Please try again or contact your leader.');
+    }
+}
+
+// ════════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════════
+function switchTab(evt, tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+function gqStatus(aht) {
+    if (!aht || aht <= 0) return 'N/A';
+    if (aht <= 295) return 'On Target ✅';
+    if (aht <= 300) return 'Acceptable ⚠️';
+    return 'Critical ❌';
+}
+
+function gqBadge(aht) {
+    if (!aht || aht <= 0) return 'badge badge-grey';
+    if (aht <= 295) return 'badge badge-green';
+    if (aht <= 300) return 'badge badge-teal';
+    return 'badge badge-red';
+}
+
+function resStatus(aht) {
+    if (!aht || aht <= 0) return 'N/A';
+    if (aht <= 300) return 'Exceptional ⭐';
+    if (aht <= 340) return 'Excellent ✅';
+    if (aht <= 370) return 'Good ✓';
+    if (aht <= 420) return 'Needs Work ⚠️';
+    return 'Critical ❌';
+}
+
+function resBadge(aht) {
+    if (!aht || aht <= 0) return 'badge badge-grey';
+    if (aht <= 340) return 'badge badge-green';
+    if (aht <= 370) return 'badge badge-blue';
+    if (aht <= 420) return 'badge badge-orange';
+    return 'badge badge-red';
+}
+
+// ════════════════════════════════════════════════════
+// FALLBACK DATA (if cloud fails)
+// ════════════════════════════════════════════════════
+function loadFallbackData() {
+    console.warn('Using fallback demo data');
+    allAgents = [
+        { id: 1, empId: 'EMP-001', name: 'John Smith', workEmail: 'john.smith@company.com', gqAHT: 305, resAHT: 350, conversionRate: 82, qualityScore: 92, prepaidRate: 70, payLaterRate: 30, coachingSessions: [{ id: 101, date: '2026-02-15', type: 'One-on-One', focusArea: 'GQ AHT Reduction', smartGoal: { specific: 'Reduce GQ AHT from 305s to 295s using faster call flow techniques', measurable: 'Track daily AHT; target 295s average. Success = 5 consecutive days at or below 295s', achievable: 'Use Quick Reference Card and system shortcuts', relevant: 'GQ AHT of 305s is Critical. Target is 295s to meet standards', deadline: '2026-03-15' }, notes: 'Focus on reducing hold time. Bundle questions together. Review call recordings weekly.', metrics: { gqAHT: 305, resAHT: 350, conversion: 82, quality: 92, prepaid: 70, payLater: 30 }, docStatus: 'sent', sentAt: '2026-02-16T10:30:00Z', acknowledgedAt: null, acknowledgedBy: null, ackComments: null }] },
+        { id: 2, empId: 'EMP-002', name: 'Sarah Johnson', workEmail: 'sarah.johnson@company.com', gqAHT: 290, resAHT: 335, conversionRate: 88, qualityScore: 96, prepaidRate: 75, payLaterRate: 25, coachingSessions: [{ id: 102, date: '2026-02-10', type: 'Performance Review', focusArea: 'Conversion Rate Improvement', smartGoal: { specific: 'Increase conversion from 88% to 92% using assumptive closing', measurable: 'Track daily; 92% by end of month. Success = 20 out of 22 calls', achievable: 'Practice assumptive language and add-on integration', relevant: 'Higher conversion drives revenue', deadline: '2026-03-10' }, notes: 'Excellent AHT. Focus on assumptive closing and add-ons.', metrics: { gqAHT: 290, resAHT: 335, conversion: 88, quality: 96, prepaid: 75, payLater: 25 }, docStatus: 'acknowledged', sentAt: '2026-02-11T09:00:00Z', acknowledgedAt: '2026-02-12T14:30:00Z', acknowledgedBy: 'Sarah Johnson', ackComments: 'Understood. Will focus on add-ons and assumptive closing daily.' }] },
+        { id: 3, empId: 'EMP-003', name: 'Michael Chen', workEmail: 'michael.chen@company.com', gqAHT: 320, resAHT: 380, conversionRate: 75, qualityScore: 88, prepaidRate: 65, payLaterRate: 35, coachingSessions: [] },
+        { id: 4, empId: 'EMP-004', name: 'Emma Wilson', workEmail: 'emma.wilson@company.com', gqAHT: 285, resAHT: 320, conversionRate: 91, qualityScore: 94, prepaidRate: 78, payLaterRate: 22, coachingSessions: [] },
+        { id: 5, empId: 'EMP-005', name: 'David Martinez', workEmail: 'david.martinez@company.com', gqAHT: 310, resAHT: 365, conversionRate: 80, qualityScore: 90, prepaidRate: 72, payLaterRate: 28, coachingSessions: [] }
+    ];
+}
+</script>
+</body>
+</html>
